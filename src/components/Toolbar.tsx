@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useGenogramStore } from '../store/useGenogramStore';
 import { v4 as uuidv4 } from 'uuid';
-import { Download, Eye, Layers, Image as ImageIcon, FileText, FilePlus, Save, FolderOpen, Sparkles, Search } from 'lucide-react';
+import { Download, Eye, Layers, Image as ImageIcon, FileText, Trash2, Save, FolderOpen, Sparkles, Search } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
 export function Toolbar({ onOpenDetection }: { onOpenDetection?: () => void }) {
-  const { addNode, isGenosociogramMode, toggleMode, clearAll, loadExample, importData, exportData } = useGenogramStore();
+  const { addNode, nodes, isGenosociogramMode, toggleMode, clearAll, loadExample, importData, exportData } = useGenogramStore();
   const [showExportMenu, setShowExportMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,10 +62,19 @@ export function Toolbar({ onOpenDetection }: { onOpenDetection?: () => void }) {
 
   const handleAddPerson = (gender: 'male' | 'female' | 'unknown') => {
     const id = uuidv4();
+    // Posición escalonada en rejilla para que no se encimen ni caigan bajo el toolbar.
+    const count = nodes.length;
+    const cols = 4;
+    const col = count % cols;
+    const row = Math.floor(count / cols);
+    const position = {
+      x: 180 + col * 180,
+      y: 180 + row * 160,
+    };
     addNode({
       id,
       type: 'person',
-      position: { x: Math.random() * 200 + 100, y: Math.random() * 200 + 100 },
+      position,
       data: {
         id,
         name: 'Nueva Persona',
@@ -155,10 +164,10 @@ export function Toolbar({ onOpenDetection }: { onOpenDetection?: () => void }) {
       <div className="flex items-center gap-1 bg-[var(--bg)]/80 p-1 rounded-xl">
         <button
           onClick={handleNew}
-          className="flex items-center justify-center p-2 rounded-md hover:bg-[var(--surface)] text-[var(--text-2)] transition-all"
-          title="Nuevo (empezar en blanco)"
+          className="flex items-center justify-center p-2 rounded-md hover:bg-[var(--surface)] hover:text-[var(--terra)] text-[var(--text-2)] transition-all"
+          title="Borrar toda la escena (empezar en blanco)"
         >
-          <FilePlus size={18} />
+          <Trash2 size={18} />
         </button>
         <button
           onClick={loadExample}
