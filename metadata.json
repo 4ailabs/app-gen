@@ -1,0 +1,6 @@
+{
+  "name": "Genogram Builder",
+  "description": "An intuitive application for building genograms and genosociograms to visualize family relationships and transgenerational patterns.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
