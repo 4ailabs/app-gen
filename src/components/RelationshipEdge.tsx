@@ -45,20 +45,20 @@ export function RelationshipEdge({
   const getEdgeStyle = () => {
     switch (data?.type) {
       case 'marriage':
-        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? '#E8E8E6' : '#C5C5BC' };
+        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? 'var(--text)' : 'var(--text-2)' };
       case 'divorce':
-        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? '#E8E8E6' : '#C5C5BC' }; // Solid line, but with slashes
+        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? 'var(--text)' : 'var(--text-2)' }; // Solid line, but with slashes
       case 'conflict':
-        return { ...style, strokeWidth: selected ? 3 : 2, stroke: '#E06A47', strokeDasharray: '4 4' };
+        return { ...style, strokeWidth: selected ? 3 : 2, stroke: 'var(--terra)', strokeDasharray: '4 4' };
       case 'cutoff':
-        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? '#E8E8E6' : '#C5C5BC' }; // Solid with a cut
+        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? 'var(--text)' : 'var(--text-2)' }; // Solid with a cut
       case 'adopted':
-        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? '#E8E8E6' : '#C5C5BC', strokeDasharray: '6 6' };
+        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? 'var(--text)' : 'var(--text-2)', strokeDasharray: '6 6' };
       case 'close':
-        return { ...style, strokeWidth: selected ? 5 : 4, stroke: selected ? '#E8E8E6' : '#C5C5BC' };
+        return { ...style, strokeWidth: selected ? 5 : 4, stroke: selected ? 'var(--text)' : 'var(--text-2)' };
       case 'parent_child':
       default:
-        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? '#C5C5BC' : '#9C9C98' };
+        return { ...style, strokeWidth: selected ? 3 : 2, stroke: selected ? 'var(--text-2)' : 'var(--text-3)' };
     }
   };
 
@@ -69,16 +69,16 @@ export function RelationshipEdge({
       {/* Divorce Slashes */}
       {data?.type === 'divorce' && (
         <g transform={`translate(${labelX}, ${labelY})`}>
-          <line x1="-6" y1="-10" x2="6" y2="10" stroke="#D6705A" strokeWidth="2.5" />
-          <line x1="-14" y1="-10" x2="-2" y2="10" stroke="#D6705A" strokeWidth="2.5" />
+          <line x1="-6" y1="-10" x2="6" y2="10" stroke="var(--terra)" strokeWidth="2.5" />
+          <line x1="-14" y1="-10" x2="-2" y2="10" stroke="var(--terra)" strokeWidth="2.5" />
         </g>
       )}
 
       {/* Cutoff (Corte emocional) Marks */}
       {data?.type === 'cutoff' && (
         <g transform={`translate(${labelX}, ${labelY})`}>
-          <line x1="-12" y1="-10" x2="0" y2="10" stroke="#A65630" strokeWidth="2.5" />
-          <line x1="0" y1="-10" x2="12" y2="10" stroke="#A65630" strokeWidth="2.5" />
+          <line x1="-12" y1="-10" x2="0" y2="10" stroke="var(--terra)" strokeWidth="2.5" />
+          <line x1="0" y1="-10" x2="12" y2="10" stroke="var(--terra)" strokeWidth="2.5" />
           {/* Create a small gap effect by overlapping a white line or similar if needed, but the manual shows // cutting it */}
         </g>
       )}
@@ -96,14 +96,14 @@ export function RelationshipEdge({
           )}
         >
           {data?.label && (
-            <div className="bg-[#1A1A19]/90 backdrop-blur-sm px-2 py-1 rounded shadow-sm text-[#E8E8E6] border border-[#333331] font-bold tracking-widest uppercase text-[9px] min-w-max">
+            <div className="bg-[var(--bg)]/90 backdrop-blur-sm px-2 py-1 rounded shadow-sm text-[var(--text)] border border-[var(--border)] font-bold tracking-widest uppercase text-[9px] min-w-max">
               {data.label}
             </div>
           )}
           
           <button 
             className={cn(
-              "w-6 h-6 rounded-full bg-[#242423] shadow-lg border border-[#333331] flex items-center justify-center text-[#E06A47] hover:bg-[#E06A47] hover:text-white transition-all duration-200 cursor-pointer nodrag",
+              "w-6 h-6 rounded-full bg-[var(--surface)] shadow-lg border border-[var(--border)] flex items-center justify-center text-[var(--terra)] hover:bg-[var(--terra)] hover:text-white transition-all duration-200 cursor-pointer nodrag",
               selected ? "opacity-100 scale-100" : "opacity-0 scale-50 pointer-events-none absolute"
             )}
             onClick={(e) => {

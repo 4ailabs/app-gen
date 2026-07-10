@@ -17,6 +17,8 @@ import { NodeData, EdgeData } from '../types';
 export type GenogramNode = Node<NodeData>;
 export type GenogramEdge = Edge<EdgeData>;
 
+const STORAGE_KEY = 'genograma-instituto-v1';
+
 interface GenogramState {
   nodes: GenogramNode[];
   edges: GenogramEdge[];
@@ -32,9 +34,14 @@ interface GenogramState {
   toggleMode: () => void;
   deleteEdge: (id: string) => void;
   deleteNode: (id: string) => void;
+  // clase: guardar/cargar/limpiar
+  clearAll: () => void;
+  loadExample: () => void;
+  importData: (data: { nodes: GenogramNode[]; edges: GenogramEdge[] }) => void;
+  exportData: () => { nodes: GenogramNode[]; edges: GenogramEdge[] };
 }
 
-const initialNodes: GenogramNode[] = [
+const exampleNodes: GenogramNode[] = [
   {
     id: '1',
     type: 'person',
@@ -85,7 +92,7 @@ const initialNodes: GenogramNode[] = [
   },
 ];
 
-const initialEdges: GenogramEdge[] = [
+const exampleEdges: GenogramEdge[] = [
   {
     id: 'e1-2',
     source: '1',
@@ -111,58 +118,112 @@ const initialEdges: GenogramEdge[] = [
   }
 ];
 
+// --- Persistencia en localStorage ---
+function loadFromStorage(): { nodes: GenogramNode[]; edges: GenogramEdge[] } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed.nodes) && Array.isArray(parsed.edges)) return parsed;
+  } catch {
+    /* ignora datos corruptos */
+  }
+  return null;
+}
+
+function saveToStorage(nodes: GenogramNode[], edges: GenogramEdge[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, edges }));
+  } catch {
+    /* almacenamiento no disponible */
+  }
+}
+
+// Estado inicial: lo guardado del estudiante, o vacío (arranca en blanco para clase).
+const saved = typeof window !== 'undefined' ? loadFromStorage() : null;
+const startNodes: GenogramNode[] = saved ? saved.nodes : [];
+const startEdges: GenogramEdge[] = saved ? saved.edges : [];
+
 export const useGenogramStore = create<GenogramState>((set, get) => ({
-  nodes: initialNodes,
-  edges: initialEdges,
+  nodes: startNodes,
+  edges: startEdges,
   isGenosociogramMode: false,
   onNodesChange: (changes: NodeChange<GenogramNode>[]) => {
-    set({
-      nodes: applyNodeChanges(changes, get().nodes),
-    });
+    const nodes = applyNodeChanges(changes, get().nodes);
+    set({ nodes });
+    saveToStorage(nodes, get().edges);
   },
   onEdgesChange: (changes: EdgeChange<GenogramEdge>[]) => {
-    set({
-      edges: applyEdgeChanges(changes, get().edges),
-    });
+    const edges = applyEdgeChanges(changes, get().edges);
+    set({ edges });
+    saveToStorage(get().nodes, edges);
   },
   onConnect: (connection: Connection) => {
-    set({
-      edges: addEdge({ 
-        ...connection, 
-        id: `e-${connection.source}-${connection.target}-${Date.now()}`,
-        type: 'relationship', 
-        data: { type: 'marriage' } 
-      }, get().edges),
-    });
+    const edges = addEdge({
+      ...connection,
+      id: `e-${connection.source}-${connection.target}-${Date.now()}`,
+      type: 'relationship',
+      data: { type: 'marriage' }
+    }, get().edges);
+    set({ edges });
+    saveToStorage(get().nodes, edges);
   },
-  setNodes: (nodes) => set({ nodes }),
-  setEdges: (edges) => set({ edges }),
-  addNode: (node) => set({ nodes: [...get().nodes, node] }),
-  updateNodeData: (id, data) => set({
-    nodes: get().nodes.map(node => 
+  setNodes: (nodes) => { set({ nodes }); saveToStorage(nodes, get().edges); },
+  setEdges: (edges) => { set({ edges }); saveToStorage(get().nodes, edges); },
+  addNode: (node) => {
+    const nodes = [...get().nodes, node];
+    set({ nodes });
+    saveToStorage(nodes, get().edges);
+  },
+  updateNodeData: (id, data) => {
+    const nodes = get().nodes.map(node =>
       node.id === id ? { ...node, data: { ...node.data, ...data } } : node
-    )
-  }),
-  updateEdgeData: (id, data) => set({
-    edges: get().edges.map(edge => 
+    );
+    set({ nodes });
+    saveToStorage(nodes, get().edges);
+  },
+  updateEdgeData: (id, data) => {
+    const edges = get().edges.map(edge =>
       edge.id === id ? { ...edge, data: { ...edge.data, ...data } } : edge
-    )
-  }),
-  deleteEdge: (id) => set((state) => ({
-    edges: state.edges.filter((e) => e.id !== id)
-  })),
-  deleteNode: (id) => set((state) => ({
-    nodes: state.nodes.filter((n) => n.id !== id),
-    edges: state.edges.filter((e) => e.source !== id && e.target !== id)
-  })),
+    );
+    set({ edges });
+    saveToStorage(get().nodes, edges);
+  },
+  deleteEdge: (id) => {
+    const edges = get().edges.filter((e) => e.id !== id);
+    set({ edges });
+    saveToStorage(get().nodes, edges);
+  },
+  deleteNode: (id) => {
+    const nodes = get().nodes.filter((n) => n.id !== id);
+    const edges = get().edges.filter((e) => e.source !== id && e.target !== id);
+    set({ nodes, edges });
+    saveToStorage(nodes, edges);
+  },
   toggleMode: () => set((state) => {
     const newMode = !state.isGenosociogramMode;
-    return {
-      isGenosociogramMode: newMode,
-      nodes: state.nodes.map(n => ({
-        ...n,
-        data: { ...n.data, isGenosociogramMode: newMode }
-      }))
-    };
-  })
+    const nodes = state.nodes.map(n => ({
+      ...n,
+      data: { ...n.data, isGenosociogramMode: newMode }
+    }));
+    saveToStorage(nodes, state.edges);
+    return { isGenosociogramMode: newMode, nodes };
+  }),
+  // --- Acciones para clase ---
+  clearAll: () => {
+    set({ nodes: [], edges: [] });
+    saveToStorage([], []);
+  },
+  loadExample: () => {
+    const nodes = exampleNodes.map(n => ({ ...n, data: { ...n.data, isGenosociogramMode: get().isGenosociogramMode } }));
+    set({ nodes, edges: exampleEdges });
+    saveToStorage(nodes, exampleEdges);
+  },
+  importData: (data) => {
+    const nodes = (data.nodes || []).map(n => ({ ...n, data: { ...n.data, isGenosociogramMode: get().isGenosociogramMode } }));
+    const edges = data.edges || [];
+    set({ nodes, edges });
+    saveToStorage(nodes, edges);
+  },
+  exportData: () => ({ nodes: get().nodes, edges: get().edges }),
 }));

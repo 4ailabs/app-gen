@@ -1,7 +1,51 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-serif: "Fraunces", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
+
+/* Fraunces se ve mejor con "opsz" alto en títulos grandes */
+.font-serif {
+  font-optical-sizing: auto;
+}
+
+/* ---- Sistema de tema: oscuro (por defecto) y claro ---- */
+:root {
+  --bg:        #1A1A19;  /* fondo principal */
+  --surface:   #242423;  /* paneles, tarjetas */
+  --surface-2: #2C2C2B;  /* hover */
+  --border:    #333331;  /* bordes */
+  --text:      #E8E8E6;  /* texto principal */
+  --text-2:    #C5C5BC;  /* texto secundario */
+  --text-3:    #9C9C98;  /* texto tenue / etiquetas */
+  --grid:      #333331;  /* puntos del lienzo */
+  /* acentos del Instituto (constantes en ambos temas) */
+  --terra:     #D6705A;
+  --sage:      #8FA87A;
+  --gold:      #E8A857;
+}
+
+:root.light {
+  --bg:        #FAF7F2;
+  --surface:   #FFFFFF;
+  --surface-2: #F0EBE3;
+  --border:    #E0D8CC;
+  --text:      #2A2622;
+  --text-2:    #4A443D;
+  --text-3:    #7A7168;
+  --grid:      #E2DACE;
+  --terra:     #B5533B;
+  --sage:      #6E8659;
+  --gold:      #C08A32;
+}
+
+/* utilidades de tema para usar en los componentes */
+.bg-app        { background-color: var(--bg); }
+.bg-surface    { background-color: var(--surface); }
+.bg-surface-2  { background-color: var(--surface-2); }
+.border-theme  { border-color: var(--border); }
+.text-theme    { color: var(--text); }
+.text-theme-2  { color: var(--text-2); }
+.text-theme-3  { color: var(--text-3); }
